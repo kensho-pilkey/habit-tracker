@@ -1,4 +1,4 @@
-# 365-Day Habit Tracker
+# The Simple Habit Tracker
 A GitHub-style habit tracking web application built with React. This app allows users to visualize their habit streaks similar to GitHub's commit graph.
 
 https://kensho-pilkey.github.io/habit-tracker/
