@@ -1,39 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import HabitGrid from './components/HabitGrid';
 import HabitForm from './components/HabitForm';
 
 function App() {
-  // State for habits
-  const [habits, setHabits] = useState([
-    {
-      id: 1,
-      name: "Daily Exercise",
-      description: "30 minutes of exercise each day",
-      color: "#4CAF50",
-      trackedDays: {
-        "2025-03-01": true,
-        "2025-02-28": true,
-        "2025-02-27": true,
-        "2025-02-25": true,
-        "2025-02-20": true,
-        "2025-02-19": true,
-        "2025-02-18": true,
-        "2025-01-15": true,
-        "2025-01-14": true,
-      }
+  // Initial sample habit data (only used if no data in localStorage)
+  const initialHabit = {
+    id: 1,
+    name: "Daily Exercise",
+    description: "30 minutes of exercise each day",
+    color: "#4CAF50",
+    trackedDays: {
+      "2025-03-01": true,
+      "2025-02-28": true,
+      "2025-02-27": true,
+      "2025-02-25": true,
+      "2025-02-20": true,
+      "2025-02-19": true,
+      "2025-02-18": true,
+      "2025-01-15": true,
+      "2025-01-14": true,
     }
-  ]);
+  };
+
+  // Load habits from localStorage if available, otherwise use initial data
+  const [habits, setHabits] = useState(() => {
+    const savedHabits = localStorage.getItem('habits');
+    return savedHabits ? JSON.parse(savedHabits) : [initialHabit];
+  });
   
   // State for selected habit (for editing and viewing grid)
-  const [selectedHabit, setSelectedHabit] = useState(habits[0]);
+  const [selectedHabit, setSelectedHabit] = useState(() => {
+    return habits[0] || null;
+  });
+
+  // Save habits to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('habits', JSON.stringify(habits));
+  }, [habits]);
 
   // Add a new habit
   const handleAddHabit = (newHabit) => {
     // Create new habit with ID and empty trackedDays
     const habitToAdd = {
       ...newHabit,
-      id: Date.now() // Simple unique ID generation
+      id: Date.now(), // Simple unique ID generation
+      trackedDays: newHabit.trackedDays || {}
     };
     
     setHabits([...habits, habitToAdd]);
@@ -106,19 +118,23 @@ function App() {
             
             <div className="habits-list">
               <h3>My Habits</h3>
-              {habits.map(habit => (
-                <div 
-                  key={habit.id}
-                  className={`habit-item ${selectedHabit && selectedHabit.id === habit.id ? 'selected' : ''}`}
-                  onClick={() => setSelectedHabit(habit)}
-                >
+              {habits.length === 0 ? (
+                <p className="no-habits">No habits added yet. Add your first habit above!</p>
+              ) : (
+                habits.map(habit => (
                   <div 
-                    className="habit-color" 
-                    style={{ backgroundColor: habit.color }}
-                  ></div>
-                  <div className="habit-name">{habit.name}</div>
-                </div>
-              ))}
+                    key={habit.id}
+                    className={`habit-item ${selectedHabit && selectedHabit.id === habit.id ? 'selected' : ''}`}
+                    onClick={() => setSelectedHabit(habit)}
+                  >
+                    <div 
+                      className="habit-color" 
+                      style={{ backgroundColor: habit.color }}
+                    ></div>
+                    <div className="habit-name">{habit.name}</div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
           
