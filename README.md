@@ -89,7 +89,8 @@ To deploy to GitHub Pages:
 - Add user accounts for multi-device syncing
 - Implement categories for habits
 - Add reminder notifications
-- Create weekly and monthly view options
+- Create weekly and monthly view options✅
+- Add a backend as opposed to storing locally.
 - Add data export/import functionality
 
 ## License
