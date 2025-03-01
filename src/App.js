@@ -133,8 +133,10 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Habit Tracker</h1>
-        <p>Track your daily habits and build streaks!</p>
+        <div className="header-content">
+          <h1>Habit Tracker</h1>
+          <p>Track your daily habits and build streaks!</p>
+        </div>
       </header>
       
       <main className="App-main">
