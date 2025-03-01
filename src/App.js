@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import HabitGrid from './components/HabitGrid';
 import HabitForm from './components/HabitForm';
+import HabitStats from './components/HabitStats';
+import SummaryReport from './components/SummaryReport';
 
 function App() {
-  // Load habits from localStorage if available, otherwise use initial data
+  // Load habits from localStorage if available
   const [habits, setHabits] = useState(() => {
     const savedHabits = localStorage.getItem('habits');
     return savedHabits ? JSON.parse(savedHabits) : [{
@@ -26,12 +28,12 @@ function App() {
     }];
   });
   
-  // State for selected habit (for editing and viewing grid)
+  // State for selected habit
   const [selectedHabit, setSelectedHabit] = useState(() => {
     return habits[0] || null;
   });
   
-  // State to track which habit we're editing (if any)
+  // State for editing habit
   const [editingHabit, setEditingHabit] = useState(null);
 
   // Save habits to localStorage whenever they change
@@ -41,15 +43,14 @@ function App() {
 
   // Add a new habit
   const handleAddHabit = (newHabit) => {
-    // Create new habit with ID and empty trackedDays
     const habitToAdd = {
       ...newHabit,
-      id: Date.now(), // Simple unique ID generation
+      id: Date.now(),
       trackedDays: newHabit.trackedDays || {}
     };
     
     setHabits([...habits, habitToAdd]);
-    setSelectedHabit(habitToAdd); // Select the newly added habit
+    setSelectedHabit(habitToAdd);
   };
   
   // Update an existing habit
@@ -60,36 +61,33 @@ function App() {
       )
     );
     setSelectedHabit(updatedHabit);
-    setEditingHabit(null); // Exit edit mode
+    setEditingHabit(null);
   };
 
   // Delete a habit
   const handleDeleteHabit = (habitId) => {
-    // Filter out the habit with the given ID
     const updatedHabits = habits.filter(habit => habit.id !== habitId);
     setHabits(updatedHabits);
     
-    // If we're deleting the currently selected habit, select another one
     if (selectedHabit && selectedHabit.id === habitId) {
       setSelectedHabit(updatedHabits[0] || null);
     }
     
-    // If we're deleting the habit being edited, exit edit mode
     if (editingHabit && editingHabit.id === habitId) {
       setEditingHabit(null);
     }
   };
   
-  // Toggle a day for a habit (completed/not completed)
+  // Toggle a day for a habit
   const handleToggleDay = (habitId, dateKey) => {
     const updatedHabits = habits.map(habit => {
       if (habit.id === habitId) {
         const updatedTrackedDays = { ...habit.trackedDays };
         
         if (updatedTrackedDays[dateKey]) {
-          delete updatedTrackedDays[dateKey]; // Remove if already tracked
+          delete updatedTrackedDays[dateKey];
         } else {
-          updatedTrackedDays[dateKey] = true; // Add if not tracked
+          updatedTrackedDays[dateKey] = true;
         }
         
         const updatedHabit = { 
@@ -97,12 +95,10 @@ function App() {
           trackedDays: updatedTrackedDays 
         };
         
-        // Also update selectedHabit if this is the one being modified
         if (selectedHabit && selectedHabit.id === habitId) {
           setSelectedHabit(updatedHabit);
         }
         
-        // Also update editingHabit if this is the one being edited
         if (editingHabit && editingHabit.id === habitId) {
           setEditingHabit(updatedHabit);
         }
@@ -115,7 +111,7 @@ function App() {
     setHabits(updatedHabits);
   };
 
-  // Handle form submission (add or update)
+  // Handle form submission
   const handleSubmitForm = (habitData) => {
     if (habitData.id) {
       handleUpdateHabit(habitData);
@@ -143,10 +139,10 @@ function App() {
       
       <main className="App-main">
         <div className="app-layout">
-          <div className="form-container">
+          <div className="left-column">
             <HabitForm 
               onSubmit={handleSubmitForm}
-              habit={editingHabit} // Pass the habit being edited, or null
+              habit={editingHabit}
               onCancel={handleCancelEdit}
             />
             
@@ -198,19 +194,27 @@ function App() {
                 ))
               )}
             </div>
+            
+            {/* Summary Report below habits list */}
+            <SummaryReport habits={habits} />
           </div>
           
-          <div className="grid-container">
-            {selectedHabit ? (
-              <HabitGrid 
-                habit={selectedHabit}
-                onToggleDay={handleToggleDay}
-              />
-            ) : (
-              <div className="select-habit-message">
-                Select a habit to view its grid
-              </div>
-            )}
+          <div className="right-column">
+            <div className="grid-container">
+              {selectedHabit ? (
+                <HabitGrid 
+                  habit={selectedHabit}
+                  onToggleDay={handleToggleDay}
+                />
+              ) : (
+                <div className="select-habit-message">
+                  Select a habit to view its grid
+                </div>
+              )}
+            </div>
+            
+            {/* HabitStats below grid */}
+            {selectedHabit && <HabitStats habit={selectedHabit} />}
           </div>
         </div>
       </main>
