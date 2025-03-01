@@ -12,6 +12,7 @@ https://kensho-pilkey.github.io/habit-tracker/
 - **Persistence**: All data is saved to localStorage, so your progress is preserved between sessions
 - **Statistics**: View current streaks, longest streaks, and completion rates for each habit
 - **Customization**: Choose from various colors to personalize each habit
+- **Views**: Choose to view weekly/monthly/yearly data
 
 ## How It Works
 
@@ -24,6 +25,7 @@ https://kensho-pilkey.github.io/habit-tracker/
 ## Technologies Used
 
 - React (with Hooks)
+- Javascript
 - CSS for styling
 - LocalStorage for data persistence
 
@@ -57,31 +59,6 @@ https://kensho-pilkey.github.io/habit-tracker/
 
 5. Open your browser and navigate to `http://localhost:3000`
 
-## Deployment
-
-This app can be easily deployed to GitHub Pages or any static hosting service since it doesn't require a backend server.
-
-To deploy to GitHub Pages:
-
-1. Install the gh-pages package:
-   ```
-   npm install --save gh-pages
-   ```
-
-2. Add the following to your `package.json`:
-   ```json
-   "homepage": "https://yourusername.github.io/habit-tracker",
-   "scripts": {
-     // ...
-     "predeploy": "npm run build",
-     "deploy": "gh-pages -d build"
-   }
-   ```
-
-3. Deploy:
-   ```
-   npm run deploy
-   ```
 
 ## Future Enhancements
 
