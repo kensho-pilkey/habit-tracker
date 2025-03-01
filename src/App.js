@@ -30,6 +30,9 @@ function App() {
   const [selectedHabit, setSelectedHabit] = useState(() => {
     return habits[0] || null;
   });
+  
+  // State to track which habit we're editing (if any)
+  const [editingHabit, setEditingHabit] = useState(null);
 
   // Save habits to localStorage whenever they change
   useEffect(() => {
@@ -46,6 +49,7 @@ function App() {
     };
     
     setHabits([...habits, habitToAdd]);
+    setSelectedHabit(habitToAdd); // Select the newly added habit
   };
   
   // Update an existing habit
@@ -56,6 +60,7 @@ function App() {
       )
     );
     setSelectedHabit(updatedHabit);
+    setEditingHabit(null); // Exit edit mode
   };
 
   // Delete a habit
@@ -67,6 +72,11 @@ function App() {
     // If we're deleting the currently selected habit, select another one
     if (selectedHabit && selectedHabit.id === habitId) {
       setSelectedHabit(updatedHabits[0] || null);
+    }
+    
+    // If we're deleting the habit being edited, exit edit mode
+    if (editingHabit && editingHabit.id === habitId) {
+      setEditingHabit(null);
     }
   };
   
@@ -92,6 +102,11 @@ function App() {
           setSelectedHabit(updatedHabit);
         }
         
+        // Also update editingHabit if this is the one being edited
+        if (editingHabit && editingHabit.id === habitId) {
+          setEditingHabit(updatedHabit);
+        }
+        
         return updatedHabit;
       }
       return habit;
@@ -109,6 +124,16 @@ function App() {
     }
   };
   
+  // Start editing a habit
+  const handleEditHabit = (habit) => {
+    setEditingHabit(habit);
+  };
+  
+  // Cancel editing
+  const handleCancelEdit = () => {
+    setEditingHabit(null);
+  };
+  
   return (
     <div className="App">
       <header className="App-header">
@@ -121,8 +146,8 @@ function App() {
           <div className="form-container">
             <HabitForm 
               onSubmit={handleSubmitForm}
-              habit={null} // Set to null for new habit, or a habit object for editing
-              onCancel={() => setSelectedHabit(null)}
+              habit={editingHabit} // Pass the habit being edited, or null
+              onCancel={handleCancelEdit}
             />
             
             <div className="habits-list">
@@ -142,20 +167,32 @@ function App() {
                     ></div>
                     <div className="habit-name">{habit.name}</div>
                     
-                    {/* Show delete button if this is the selected habit */}
+                    {/* Action buttons for selected habit */}
                     {selectedHabit && selectedHabit.id === habit.id && (
-                      <button 
-                        className="delete-button"
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent the click from selecting the habit
-                          if (window.confirm('Are you sure you want to delete this habit?')) {
-                            handleDeleteHabit(habit.id);
-                          }
-                        }}
-                        title="Delete habit"
-                      >
-                        🗑️
-                      </button>
+                      <div className="habit-actions">
+                        <button 
+                          className="edit-button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditHabit(habit);
+                          }}
+                          title="Edit habit"
+                        >
+                          ✏️
+                        </button>
+                        <button 
+                          className="delete-button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm('Are you sure you want to delete this habit?')) {
+                              handleDeleteHabit(habit.id);
+                            }
+                          }}
+                          title="Delete habit"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     )}
                   </div>
                 ))
