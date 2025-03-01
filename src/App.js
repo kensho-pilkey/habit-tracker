@@ -4,29 +4,26 @@ import HabitGrid from './components/HabitGrid';
 import HabitForm from './components/HabitForm';
 
 function App() {
-  // Initial sample habit data (only used if no data in localStorage)
-  const initialHabit = {
-    id: 1,
-    name: "Daily Exercise",
-    description: "30 minutes of exercise each day",
-    color: "#4CAF50",
-    trackedDays: {
-      "2025-03-01": true,
-      "2025-02-28": true,
-      "2025-02-27": true,
-      "2025-02-25": true,
-      "2025-02-20": true,
-      "2025-02-19": true,
-      "2025-02-18": true,
-      "2025-01-15": true,
-      "2025-01-14": true,
-    }
-  };
-
   // Load habits from localStorage if available, otherwise use initial data
   const [habits, setHabits] = useState(() => {
     const savedHabits = localStorage.getItem('habits');
-    return savedHabits ? JSON.parse(savedHabits) : [initialHabit];
+    return savedHabits ? JSON.parse(savedHabits) : [{
+      id: 1,
+      name: "Daily Exercise",
+      description: "30 minutes of exercise each day",
+      color: "#4CAF50",
+      trackedDays: {
+        "2025-03-01": true,
+        "2025-02-28": true,
+        "2025-02-27": true,
+        "2025-02-25": true,
+        "2025-02-20": true,
+        "2025-02-19": true,
+        "2025-02-18": true,
+        "2025-01-15": true,
+        "2025-01-14": true,
+      }
+    }];
   });
   
   // State for selected habit (for editing and viewing grid)
@@ -59,6 +56,18 @@ function App() {
       )
     );
     setSelectedHabit(updatedHabit);
+  };
+
+  // Delete a habit
+  const handleDeleteHabit = (habitId) => {
+    // Filter out the habit with the given ID
+    const updatedHabits = habits.filter(habit => habit.id !== habitId);
+    setHabits(updatedHabits);
+    
+    // If we're deleting the currently selected habit, select another one
+    if (selectedHabit && selectedHabit.id === habitId) {
+      setSelectedHabit(updatedHabits[0] || null);
+    }
   };
   
   // Toggle a day for a habit (completed/not completed)
@@ -132,6 +141,22 @@ function App() {
                       style={{ backgroundColor: habit.color }}
                     ></div>
                     <div className="habit-name">{habit.name}</div>
+                    
+                    {/* Show delete button if this is the selected habit */}
+                    {selectedHabit && selectedHabit.id === habit.id && (
+                      <button 
+                        className="delete-button"
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent the click from selecting the habit
+                          if (window.confirm('Are you sure you want to delete this habit?')) {
+                            handleDeleteHabit(habit.id);
+                          }
+                        }}
+                        title="Delete habit"
+                      >
+                        🗑️
+                      </button>
+                    )}
                   </div>
                 ))
               )}
