@@ -94,6 +94,10 @@ const HabitGrid = ({ habit, onToggleDay }) => {
         // Move forward or backward by one year
         newDate.setFullYear(newDate.getFullYear() + (direction === 'next' ? 1 : -1));
         break;
+        
+      default:
+        // Default case - no changes
+        break;
     }
     
     setCurrentDate(newDate);
