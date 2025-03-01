@@ -5,27 +5,35 @@ const HabitGrid = ({ habit, onToggleDay }) => {
   // State to store all days for the grid
   const [gridCells, setGridCells] = useState([]);
   
-  // Generate all days for the year (365/366 days)
+  // Generate all days for the year
   useEffect(() => {
     const generateYearGrid = () => {
       const today = new Date();
+      const currentYear = today.getFullYear();
       const cells = [];
       
-      // Go back to start of year or at most 365 days back
-      const startDate = new Date(today.getFullYear(), 0, 1); // Jan 1st of current year
+      // Start from January 1st of current year
+      const startDate = new Date(currentYear, 0, 1);
+      // End at December 31st of current year
+      const endDate = new Date(currentYear, 11, 31);
       
-      // Loop through each day from start date to today
-      for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
+      // Loop through each day of the year
+      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
         const dateKey = formatDateKey(d);
         const dayOfWeek = d.getDay(); // 0 = Sunday, 1 = Monday, ...
         const weekNumber = getWeekNumber(d);
+        const month = d.getMonth(); // 0-11
+        const isFirstOfMonth = d.getDate() === 1;
         
         cells.push({
           date: new Date(d),
           dateKey,
           dayOfWeek,
           weekNumber,
-          isCompleted: habit?.trackedDays?.[dateKey] || false
+          month,
+          isFirstOfMonth,
+          isCompleted: habit.trackedDays[dateKey] || false,
+          isPast: d <= today // Flag to indicate if the date is in the past or future
         });
       }
       
@@ -53,8 +61,9 @@ const HabitGrid = ({ habit, onToggleDay }) => {
   };
   
   // Handle click on a day cell
-  const handleCellClick = (dateKey) => {
-    if (onToggleDay) {
+  const handleCellClick = (dateKey, isPast) => {
+    // Only allow toggling past dates (up to today)
+    if (isPast && onToggleDay) {
       onToggleDay(habit.id, dateKey);
     }
   };
@@ -69,6 +78,12 @@ const HabitGrid = ({ habit, onToggleDay }) => {
     });
   };
   
+  // Month names for labels
+  const monthNames = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ];
+  
   // Organize cells by week for the grid layout
   const weeks = {};
   gridCells.forEach(cell => {
@@ -78,8 +93,101 @@ const HabitGrid = ({ habit, onToggleDay }) => {
     weeks[cell.weekNumber][cell.dayOfWeek] = cell;
   });
   
-  // Calculate statistics
-  const calculateCurrentStreak = () => {
+  // Get month labels with their positions
+  const monthLabels = [];
+  let currentMonth = -1;
+  
+  Object.keys(weeks).forEach(weekNum => {
+    weeks[weekNum].forEach(cell => {
+      if (cell && cell.isFirstOfMonth) {
+        monthLabels.push({
+          month: cell.month,
+          weekNum: cell.weekNumber
+        });
+      }
+    });
+  });
+  
+  if (!habit) {
+    return <div className="habit-grid-empty">Select a habit to view its grid</div>;
+  }
+  
+  return (
+    <div className="habit-grid-container">
+      <h3>{habit.name} - Progress Grid</h3>
+      
+      <div className="habit-grid">
+        <div className="month-labels">
+          {monthLabels.map(label => (
+            <div 
+              key={label.month} 
+              className="month-label"
+              style={{ 
+                gridColumn: parseInt(label.weekNum) + 1 // +1 for the day labels column
+              }}
+            >
+              {monthNames[label.month]}
+            </div>
+          ))}
+        </div>
+        
+        <div className="grid-content">
+          <div className="day-labels">
+            <div>Sun</div>
+            <div>Mon</div>
+            <div>Tue</div>
+            <div>Wed</div>
+            <div>Thu</div>
+            <div>Fri</div>
+            <div>Sat</div>
+          </div>
+          
+          <div className="grid-weeks">
+            {Object.keys(weeks).map(weekNum => (
+              <div key={weekNum} className="grid-week">
+                {weeks[weekNum].map((cell, dayIndex) => (
+                  <div 
+                    key={dayIndex}
+                    className={`grid-cell ${cell ? (cell.isCompleted ? 'completed' : 'empty') : 'outside'} ${cell && !cell.isPast ? 'future' : ''}`}
+                    style={{ 
+                      backgroundColor: cell && cell.isCompleted ? habit.color : '#ebedf0',
+                      opacity: cell ? (cell.isPast ? (cell.isCompleted ? 1 : 0.3) : 0.1) : 0
+                    }}
+                    onClick={() => cell && handleCellClick(cell.dateKey, cell.isPast)}
+                    title={cell ? `${formatDateForTooltip(cell.date)}: ${cell.isCompleted ? 'Completed' : 'Not completed'}` : ''}
+                  ></div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      <div className="grid-legend">
+        <div className="legend-item">
+          <div className="legend-color" style={{ backgroundColor: habit.color, opacity: 0.3 }}></div>
+          <span>Not Completed</span>
+        </div>
+        <div className="legend-item">
+          <div className="legend-color" style={{ backgroundColor: habit.color }}></div>
+          <span>Completed</span>
+        </div>
+        <div className="legend-item">
+          <div className="legend-color" style={{ backgroundColor: '#ebedf0', opacity: 0.1 }}></div>
+          <span>Future Date</span>
+        </div>
+      </div>
+      
+      <div className="stats">
+        <p>Current streak: {calculateCurrentStreak()} days</p>
+        <p>Longest streak: {calculateLongestStreak()} days</p>
+        <p>Completion rate: {calculateCompletionRate()}%</p>
+      </div>
+    </div>
+  );
+  
+  // Helper functions for statistics
+  function calculateCurrentStreak() {
     if (!habit || !habit.trackedDays) return 0;
     
     let streak = 0;
@@ -98,9 +206,9 @@ const HabitGrid = ({ habit, onToggleDay }) => {
     }
     
     return streak;
-  };
+  }
   
-  const calculateLongestStreak = () => {
+  function calculateLongestStreak() {
     if (!habit || !habit.trackedDays) return 0;
     
     let longestStreak = 0;
@@ -131,72 +239,22 @@ const HabitGrid = ({ habit, onToggleDay }) => {
     }
     
     return longestStreak;
-  };
-  
-  const calculateCompletionRate = () => {
-    if (!habit || !habit.trackedDays || gridCells.length === 0) return 0;
-    
-    const completedDays = Object.keys(habit.trackedDays).length;
-    return Math.round((completedDays / gridCells.length) * 100);
-  };
-  
-  if (!habit) {
-    return <div className="habit-grid-empty">Select a habit to view its grid</div>;
   }
   
-  return (
-    <div className="habit-grid-container">
-      <h3>{habit.name} - Progress Grid</h3>
-      
-      <div className="habit-grid">
-        <div className="day-labels">
-          <div>Sun</div>
-          <div>Mon</div>
-          <div>Tue</div>
-          <div>Wed</div>
-          <div>Thu</div>
-          <div>Fri</div>
-          <div>Sat</div>
-        </div>
-        
-        <div className="grid-weeks">
-          {Object.keys(weeks).map(weekNum => (
-            <div key={weekNum} className="grid-week">
-              {weeks[weekNum].map((cell, dayIndex) => (
-                <div 
-                  key={dayIndex}
-                  className={`grid-cell ${cell ? (cell.isCompleted ? 'completed' : 'empty') : 'outside'}`}
-                  style={{ 
-                    backgroundColor: cell && cell.isCompleted ? habit.color : '#ebedf0',
-                    opacity: cell && cell.isCompleted ? 1 : 0.3
-                  }}
-                  onClick={() => cell && handleCellClick(cell.dateKey)}
-                  title={cell ? `${formatDateForTooltip(cell.date)}: ${cell.isCompleted ? 'Completed' : 'Not completed'}` : ''}
-                ></div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-      
-      <div className="grid-legend">
-        <div className="legend-item">
-          <div className="legend-color" style={{ backgroundColor: habit.color, opacity: 0.3 }}></div>
-          <span>Not Completed</span>
-        </div>
-        <div className="legend-item">
-          <div className="legend-color" style={{ backgroundColor: habit.color }}></div>
-          <span>Completed</span>
-        </div>
-      </div>
-      
-      <div className="stats">
-        <p>Current streak: {calculateCurrentStreak()} days</p>
-        <p>Longest streak: {calculateLongestStreak()} days</p>
-        <p>Completion rate: {calculateCompletionRate()}%</p>
-      </div>
-    </div>
-  );
+  function calculateCompletionRate() {
+    if (!habit || !habit.trackedDays) return 0;
+    
+    const today = new Date();
+    const startOfYear = new Date(today.getFullYear(), 0, 1);
+    const daysElapsed = Math.floor((today - startOfYear) / (24 * 60 * 60 * 1000)) + 1;
+    
+    const completedDays = Object.keys(habit.trackedDays).filter(dateKey => {
+      const date = new Date(dateKey);
+      return date.getFullYear() === today.getFullYear() && date <= today;
+    }).length;
+    
+    return Math.round((completedDays / daysElapsed) * 100);
+  }
 };
 
 export default HabitGrid;
