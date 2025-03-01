@@ -139,6 +139,7 @@ function App() {
       
       <main className="App-main">
         <div className="app-layout">
+          {/* Left column - Habits list and form */}
           <div className="left-column">
             <HabitForm 
               onSubmit={handleSubmitForm}
@@ -194,12 +195,10 @@ function App() {
                 ))
               )}
             </div>
-            
-            {/* Summary Report below habits list */}
-            <SummaryReport habits={habits} />
           </div>
           
-          <div className="right-column">
+          {/* Middle column - Grid and habit stats */}
+          <div className="middle-column">
             <div className="grid-container">
               {selectedHabit ? (
                 <HabitGrid 
@@ -215,6 +214,11 @@ function App() {
             
             {/* HabitStats below grid */}
             {selectedHabit && <HabitStats habit={selectedHabit} />}
+          </div>
+          
+          {/* Right column - Summary report */}
+          <div className="right-column">
+            <SummaryReport habits={habits} />
           </div>
         </div>
       </main>
