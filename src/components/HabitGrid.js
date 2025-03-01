@@ -5,7 +5,7 @@ const HabitGrid = ({ habit, onToggleDay }) => {
   // State to store all days for the grid
   const [gridCells, setGridCells] = useState([]);
   // State for current view mode (year, month, week)
-  const [viewMode, setViewMode] = useState('month');
+  const [viewMode, setViewMode] = useState('year');
   // State for navigation date
   const [currentDate, setCurrentDate] = useState(new Date());
   

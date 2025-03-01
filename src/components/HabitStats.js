@@ -74,27 +74,27 @@ const HabitStats = ({ habit }) => {
   };
   
   // Calculate monthly rate
-  const calculateMonthlyRate = () => {
-    if (!habit || !habit.trackedDays) return 0;
+  // const calculateMonthlyRate = () => {
+  //   if (!habit || !habit.trackedDays) return 0;
     
-    const today = new Date();
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-    const daysElapsed = Math.min(today.getDate(), daysInMonth);
+  //   const today = new Date();
+  //   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  //   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  //   const daysElapsed = Math.min(today.getDate(), daysInMonth);
     
-    let completedDays = 0;
-    for (let i = 0; i < daysElapsed; i++) {
-      const date = new Date(startOfMonth);
-      date.setDate(date.getDate() + i);
-      const dateKey = formatDateKey(date);
+  //   let completedDays = 0;
+  //   for (let i = 0; i < daysElapsed; i++) {
+  //     const date = new Date(startOfMonth);
+  //     date.setDate(date.getDate() + i);
+  //     const dateKey = formatDateKey(date);
       
-      if (habit.trackedDays[dateKey]) {
-        completedDays++;
-      }
-    }
+  //     if (habit.trackedDays[dateKey]) {
+  //       completedDays++;
+  //     }
+  //   }
     
-    return Math.round((completedDays / daysElapsed) * 100);
-  };
+  //   return Math.round((completedDays / daysElapsed) * 100);
+  // };
   
   // Calculate best day of the week
   const calculateBestDay = () => {
@@ -131,10 +131,6 @@ const HabitStats = ({ habit }) => {
         <div className="stat-card">
           <span className="stat-label">Total Completions</span>
           <span className="stat-value">{calculateTotalCompletions()} days</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Monthly Completion</span>
-          <span className="stat-value">{calculateMonthlyRate()}%</span>
         </div>
         <div className="stat-card">
           <span className="stat-label">Best Day</span>
