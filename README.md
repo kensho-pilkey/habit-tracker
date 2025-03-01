@@ -86,25 +86,13 @@ To deploy to GitHub Pages:
 
 ## Future Enhancements
 
+- Add additional graphs and visualizations
 - Add user accounts for multi-device syncing
 - Implement categories for habits
 - Add reminder notifications
 - Create weekly and monthly view options
 - Add data export/import functionality
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgements
-
-- Inspired by GitHub's contribution graph
-- Built as a learning project for React and front-end development
-
----
-
-Feel free to customize this README to better match your project's specifics and style!
