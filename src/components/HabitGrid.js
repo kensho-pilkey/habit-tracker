@@ -6,48 +6,51 @@ const HabitGrid = ({ habit, onToggleDay }) => {
   const [gridCells, setGridCells] = useState([]);
   // State for current view mode (year, month, week)
   const [viewMode, setViewMode] = useState('month');
+  // State for navigation date
+  const [currentDate, setCurrentDate] = useState(new Date());
   
-  // Generate grid based on selected view mode
+  // Generate grid based on selected view mode and current date
   useEffect(() => {
     if (habit) {
-      generateGrid(viewMode);
+      generateGrid(viewMode, currentDate);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [habit, viewMode]);
+  }, [habit, viewMode, currentDate]);
   
-  // Function to generate grid data based on view mode
-  const generateGrid = (mode) => {
-    const today = new Date();
-    const currentYear = today.getFullYear();
+  // Function to generate grid data based on view mode and date
+  const generateGrid = (mode, date) => {
     const cells = [];
     
     let startDate, endDate;
     
     switch (mode) {
       case 'week':
-        // Start from the beginning of the current week (Sunday)
-        startDate = new Date(today);
-        startDate.setDate(today.getDate() - today.getDay());
-        // End at the end of the current week (Saturday)
+        // Find the first day (Sunday) of the week containing the provided date
+        startDate = new Date(date);
+        startDate.setDate(date.getDate() - date.getDay());
+        // End at the last day (Saturday) of the same week
         endDate = new Date(startDate);
         endDate.setDate(startDate.getDate() + 6);
         break;
       
       case 'month':
-        // Start from the beginning of the current month
-        startDate = new Date(currentYear, today.getMonth(), 1);
-        // End at the end of the current month
-        endDate = new Date(currentYear, today.getMonth() + 1, 0);
+        // Start from the beginning of the month
+        startDate = new Date(date.getFullYear(), date.getMonth(), 1);
+        // End at the end of the month
+        endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
         break;
       
       case 'year':
       default:
-        // Start from January 1st of current year
-        startDate = new Date(currentYear, 0, 1);
-        // End at December 31st of current year
-        endDate = new Date(currentYear, 11, 31);
+        // Start from January 1st of the year
+        startDate = new Date(date.getFullYear(), 0, 1);
+        // End at December 31st of the year
+        endDate = new Date(date.getFullYear(), 11, 31);
         break;
     }
+    
+    // Current date for determining if a date is in the past or future
+    const today = new Date();
     
     // Loop through each day in the selected range
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
@@ -70,6 +73,35 @@ const HabitGrid = ({ habit, onToggleDay }) => {
     }
     
     setGridCells(cells);
+  };
+  
+  // Handle navigation
+  const handleNavigate = (direction) => {
+    const newDate = new Date(currentDate);
+    
+    switch (viewMode) {
+      case 'week':
+        // Move forward or backward by 7 days (one week)
+        newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
+        break;
+      
+      case 'month':
+        // Move forward or backward by one month
+        newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
+        break;
+      
+      case 'year':
+        // Move forward or backward by one year
+        newDate.setFullYear(newDate.getFullYear() + (direction === 'next' ? 1 : -1));
+        break;
+    }
+    
+    setCurrentDate(newDate);
+  };
+  
+  // Reset to current date/week/month/year
+  const handleResetToToday = () => {
+    setCurrentDate(new Date());
   };
   
   // Format date as YYYY-MM-DD
@@ -107,9 +139,9 @@ const HabitGrid = ({ habit, onToggleDay }) => {
   
   // Get week days information for the week view
   const getWeekViewData = () => {
-    const today = new Date();
-    const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() - today.getDay());
+    // Find the first day of the week
+    const weekStart = new Date(currentDate);
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
     
     // Find all cells belonging to the current week
     const weekCells = gridCells.filter(cell => {
@@ -147,22 +179,21 @@ const HabitGrid = ({ habit, onToggleDay }) => {
   
   // Get the title for the current view
   const getViewTitle = () => {
-    const today = new Date();
-    
     switch (viewMode) {
-      case 'week':
-        const weekStart = new Date(today);
-        weekStart.setDate(today.getDate() - today.getDay());
+      case 'week': {
+        const weekStart = new Date(currentDate);
+        weekStart.setDate(currentDate.getDate() - currentDate.getDay());
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 6);
-        return `Week of ${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+        return `Week of ${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+      }
       
       case 'month':
-        return today.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        return currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
       
       case 'year':
       default:
-        return `${today.getFullYear()}`;
+        return `${currentDate.getFullYear()} Progress`;
     }
   };
   
@@ -232,6 +263,33 @@ const HabitGrid = ({ habit, onToggleDay }) => {
     });
   }
   
+  // Check if we're viewing the current period
+  const isCurrentPeriod = () => {
+    const today = new Date();
+    
+    switch (viewMode) {
+      case 'week': {
+        const currentWeekStart = new Date(currentDate);
+        currentWeekStart.setDate(currentDate.getDate() - currentDate.getDay());
+        
+        const todayWeekStart = new Date(today);
+        todayWeekStart.setDate(today.getDate() - today.getDay());
+        
+        return currentWeekStart.toDateString() === todayWeekStart.toDateString();
+      }
+      
+      case 'month':
+        return currentDate.getMonth() === today.getMonth() &&
+               currentDate.getFullYear() === today.getFullYear();
+      
+      case 'year':
+        return currentDate.getFullYear() === today.getFullYear();
+      
+      default:
+        return false;
+    }
+  };
+  
   if (!habit) {
     return <div className="habit-grid-empty">Select a habit to view its grid</div>;
   }
@@ -261,6 +319,34 @@ const HabitGrid = ({ habit, onToggleDay }) => {
             Year
           </button>
         </div>
+      </div>
+      
+      <div className="navigation-controls">
+        <button 
+          className="nav-button" 
+          onClick={() => handleNavigate('prev')}
+          aria-label={`Previous ${viewMode}`}
+        >
+          ← Prev {viewMode}
+        </button>
+        
+        {!isCurrentPeriod() && (
+          <button 
+            className="nav-button today-button" 
+            onClick={handleResetToToday}
+            aria-label={`Go to current ${viewMode}`}
+          >
+            Today
+          </button>
+        )}
+        
+        <button 
+          className="nav-button" 
+          onClick={() => handleNavigate('next')}
+          aria-label={`Next ${viewMode}`}
+        >
+          Next {viewMode} →
+        </button>
       </div>
       
       <div className="habit-grid">
