@@ -177,84 +177,8 @@ const HabitGrid = ({ habit, onToggleDay }) => {
           <span>Future Date</span>
         </div>
       </div>
-      
-      <div className="stats">
-        <p>Current streak: {calculateCurrentStreak()} days</p>
-        <p>Longest streak: {calculateLongestStreak()} days</p>
-        <p>Completion rate: {calculateCompletionRate()}%</p>
-      </div>
     </div>
   );
-  
-  // Helper functions for statistics
-  function calculateCurrentStreak() {
-    if (!habit || !habit.trackedDays) return 0;
-    
-    let streak = 0;
-    const today = new Date();
-    
-    for (let i = 0; i <= 365; i++) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      const dateKey = formatDateKey(date);
-      
-      if (habit.trackedDays[dateKey]) {
-        streak++;
-      } else {
-        break;
-      }
-    }
-    
-    return streak;
-  }
-  
-  function calculateLongestStreak() {
-    if (!habit || !habit.trackedDays) return 0;
-    
-    let longestStreak = 0;
-    let currentStreak = 0;
-    
-    // Sort all tracked days
-    const trackedDays = Object.keys(habit.trackedDays).sort();
-    
-    for (let i = 0; i < trackedDays.length; i++) {
-      if (i === 0) {
-        currentStreak = 1;
-      } else {
-        // Check if the previous day is consecutive
-        const prevDate = new Date(trackedDays[i-1]);
-        const currentDate = new Date(trackedDays[i]);
-        prevDate.setDate(prevDate.getDate() + 1);
-        
-        if (prevDate.toDateString() === currentDate.toDateString()) {
-          currentStreak++;
-        } else {
-          currentStreak = 1;
-        }
-      }
-      
-      if (currentStreak > longestStreak) {
-        longestStreak = currentStreak;
-      }
-    }
-    
-    return longestStreak;
-  }
-  
-  function calculateCompletionRate() {
-    if (!habit || !habit.trackedDays) return 0;
-    
-    const today = new Date();
-    const startOfYear = new Date(today.getFullYear(), 0, 1);
-    const daysElapsed = Math.floor((today - startOfYear) / (24 * 60 * 60 * 1000)) + 1;
-    
-    const completedDays = Object.keys(habit.trackedDays).filter(dateKey => {
-      const date = new Date(dateKey);
-      return date.getFullYear() === today.getFullYear() && date <= today;
-    }).length;
-    
-    return Math.round((completedDays / daysElapsed) * 100);
-  }
 };
 
 export default HabitGrid;
